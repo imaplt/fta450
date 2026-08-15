@@ -11,9 +11,7 @@ from .diff import MemoryDiff
 @click.option("--timeout", type=int, help="Timeout")
 @click.pass_context
 def cli(ctx, port, baud, timeout):
-    from config import load_defaults
     defaults = load_defaults()
-
     port = port or defaults.get("port")
     baud = baud or defaults.get("baud", 4800)
     timeout = timeout or defaults.get("timeout", 1)
