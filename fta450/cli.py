@@ -3,7 +3,7 @@ from .radio import FTA450
 from .validator import ProtocolValidator
 from .config import load_defaults
 from .diff import MemoryDiff
-
+from .radio import FTA450Clone  # or .clone if you put it there
 
 @click.group()
 @click.option("--port", help="Serial port for the radio")
@@ -111,3 +111,26 @@ def import_yaml(ctx, config_file):
 
         result = radio.write_memory_if_changed(idx, freq, name)
         print(f"{idx:03d}: {result}")
+
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+def clone_download():
+    defaults = load_defaults()
+    port = defaults.get("port")
+    baud = defaults.get("baud", 4800)
+    timeout = defaults.get("timeout", 1)
+
+    if not port:
+        raise click.UsageError("No port specified and no default in config file.")
+
+    clone = FTA450Clone(port, baud=baud, timeout=timeout)
+    try:
+        blocks = clone.clone_download()
+        click.echo(f"Received {len(blocks)} blocks")
+        for bid, data in blocks:
+            click.echo(f"Block {bid}: {len(data)} bytes")
+    finally:
+        clone.close()

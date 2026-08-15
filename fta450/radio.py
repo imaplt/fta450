@@ -1,5 +1,6 @@
 from .cat import CAT
 from .memory import MemoryChannel
+import serial
 
 class FTA450:
     def __init__(self, port, baud=4800, timeout=1):
@@ -45,3 +46,67 @@ class FTA450:
             return "UNCHANGED"
 
         return self.write_memory(index, freq_mhz, name)
+
+class FTA450Clone:
+    def __init__(self, port, baud=4800, timeout=1.0):
+        self.ser = serial.Serial(port, baudrate=baud, timeout=timeout)
+
+    def close(self):
+        if self.ser and self.ser.is_open:
+            self.ser.close()
+
+    def _read_exact(self, n):
+        data = self.ser.read(n)
+        if len(data) != n:
+            raise RuntimeError(f"Expected {n} bytes, got {len(data)}")
+        return data
+
+    def clone_handshake(self):
+        # Basic Yaesu-style clone handshake (FTA-550/750 family)
+        # This may need tweaking once we see real traffic.
+        frame = b"\x02\x00\x00\x00\x00\x03"
+        self.ser.write(frame)
+        ack = self._read_exact(1)
+        if ack != b"\x06":
+            raise RuntimeError(f"Handshake failed, got {ack!r}")
+
+    def read_block(self):
+        start = self._read_exact(1)
+
+        # End of transmission
+        if start == b"\x04":
+            return None
+
+        if start != b"\x02":
+            raise RuntimeError(f"Invalid block start: {start!r}")
+
+        block_id = self._read_exact(1)
+        len_hi = self._read_exact(1)
+        len_lo = self._read_exact(1)
+
+        length = (len_hi[0] << 8) | len_lo[0]
+
+        data = self._read_exact(length)
+        checksum = self._read_exact(1)
+        end = self._read_exact(1)
+
+        if end != b"\x03":
+            raise RuntimeError(f"Invalid block end: {end!r}")
+
+        # TODO: verify checksum once we know the algorithm
+        return block_id[0], data
+
+    def clone_download(self):
+        self.clone_handshake()
+
+        blocks = []
+        while True:
+            block = self.read_block()
+            if block is None:
+                break
+
+            blocks.append(block)
+            # ACK block
+            self.ser.write(b"\x06")
+
+        return blocks
