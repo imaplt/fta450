@@ -12,7 +12,7 @@ def load_config(path):
 
 def load_defaults():
     try:
-        with open("fta450.yaml") as f:
+        with open("config.yaml") as f:
             cfg = yaml.safe_load(f)
             return cfg.get("defaults", {})
     except FileNotFoundError:
