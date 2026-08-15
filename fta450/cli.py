@@ -59,7 +59,7 @@ def write_mem(ctx, index, freq, name):
 @click.pass_context
 def load_memories(ctx, config_file):
     radio = ctx.obj
-    cfg = load_config(config_file)
+    cfg = load_defaults().load_config(config_file)
     for mem in cfg["memories"]:
         radio.write_memory(mem["index"], mem["freq"], mem["name"])
         print(f"Wrote {mem['index']}")
@@ -88,7 +88,7 @@ def validate(ctx):
 def diff(ctx, config_file, max):
 
     radio = ctx.obj
-    cfg = load_config(config_file)
+    cfg = load_defaults().load_config(config_file)
     d = MemoryDiff(radio, cfg)
 
     for idx, status, r, c in d.diff(max):
@@ -104,7 +104,7 @@ def diff(ctx, config_file, max):
 @click.pass_context
 def import_yaml(ctx, config_file):
     radio = ctx.obj
-    cfg = load_config(config_file)
+    cfg = load_defaults().load_config(config_file)
 
     for mem in cfg["memories"]:
         idx = mem["index"]
