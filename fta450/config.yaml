@@ -1,0 +1,6 @@
+defaults:
+  port: /dev/ttyACM0        # Raspberry Pi device path
+  baud: 4800                # Yaesu CAT baud rate
+  timeout: 1                # Seconds
+
+memories: []
