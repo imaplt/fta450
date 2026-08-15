@@ -1,7 +1,7 @@
 import click
 from .radio import FTA450
 from .validator import ProtocolValidator
-from .config import load_config
+from .config import load_defaults
 from .diff import MemoryDiff
 
 
