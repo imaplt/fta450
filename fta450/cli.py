@@ -112,9 +112,9 @@ def import_yaml(ctx, config_file):
         result = radio.write_memory_if_changed(idx, freq, name)
         print(f"{idx:03d}: {result}")
 
-@click.group()
-def cli():
-    pass
+# @click.group()
+# def cli():
+#     pass
 
 @cli.command()
 def clone_download():
